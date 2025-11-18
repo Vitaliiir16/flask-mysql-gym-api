@@ -1,15 +1,20 @@
 from dotenv import load_dotenv
-load_dotenv() # <--- Це має бути на самому верху
+load_dotenv()
 
 from flask import Flask
 import logging
+from flasgger import Swagger  # <--- новий імпорт
 
 from controllers import api_blueprint
 from utils.response_utils import error_response
 
+
 def create_app():
     app = Flask(__name__)
-    
+
+    # Ініціалізація Swagger UI
+    Swagger(app)  # за замовчуванням підніме UI на /apidocs [web:121]
+
     app.register_blueprint(api_blueprint, url_prefix='/api/v1')
 
     logging.basicConfig(level=logging.INFO)
@@ -22,13 +27,18 @@ def create_app():
     def handle_exception(e):
         app.logger.error(f"An unexpected error occurred: {e}", exc_info=True)
         return error_response(
-            message="An internal server error occurred", 
-            details=str(e), 
+            message="An internal server error occurred",
+            details=str(e),
             status_code=500
         )
 
     return app
 
+
+app = create_app()
+
+
 if __name__ == '__main__':
-    app = create_app()
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
+
+
